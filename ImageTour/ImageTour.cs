@@ -14,7 +14,11 @@ namespace ImageTour
         private int totalHeight;
         private string outputPath;
         private double fps;
-        private IEnumerable<Transition> transitions;
+        private int totalFrames;
+        private int currentStage;
+        private Transition[] transitions;
+        private Action<Progress>? progress;
+        //private bool dontDeleteFrames;
         private bool hasBeenKilled;
         private Process currentProcess;
 
@@ -23,48 +27,82 @@ namespace ImageTour
             this.ffmpegPath = ffmpegPath;
         }
 
-        public async Task<Payload> Animate(string inputFileName, string outputFileName, int outputWidth, int outputHeight, double outputFps, IEnumerable<Transition> transitionSteps, Action<Progress>? progress = default)
+        public async Task<Payload> Animate(string inputFileName, string outputFileName, int outputWidth, int outputHeight, double outputFps, IEnumerable<Transition> transitionSteps, Action<Progress>? progress = default, bool dontDeleteGeneratedFrames = false)
         {
             inputPath = inputFileName;
             outputPath = outputFileName;
             width = outputWidth;
             height = outputHeight;
             fps = outputFps;
-            transitions = transitionSteps;
+            transitions = transitionSteps.ToArray();
+            this.progress = progress;
+            //dontDeleteFrames = dontDeleteGeneratedFrames;
+
+            if (!transitions.Any())
+            {
+                return new Payload
+                {
+                    ErrorMessage = "No transitions specified"
+                };
+            }
 
             await Setup();
+
+            if (outputWidth > totalWidth || outputHeight > totalHeight)
+            {
+                return new Payload
+                {
+                    ErrorMessage = "One or more of the output dimensions is greater than the corresponding dimension of the input image"
+                };
+            }
 
             var lastPosition = transitions.First().StartPosition;
             var lastFrame = 1;
             await GenerateFrame(lastPosition.X, lastPosition.Y, lastFrame); //Generate first frame
+            RecordProgress(1);
 
-            foreach (var transition in transitions)
+            try
             {
-                if (!Equals(transition.StartPosition, lastPosition))
-                    throw new InvalidOperationException("Current transition does not flow from last transition");
+                foreach (var transition in transitions)
+                {
+                    if (!Equals(transition.StartPosition, lastPosition))
+                        throw new InvalidOperationException("Current transition does not flow from last transition");
 
-                if (Equals(transition.StartPosition, transition.EndPosition))
-                {
-                    lastFrame += ProcessStillFrames(transition, lastFrame);
-                }
-                else
-                {
                     lastFrame += await ProcessTransitionFrames(transition, lastFrame);
+                    lastPosition = transition.EndPosition;
+                    currentStage++;
                 }
-                lastPosition = transition.EndPosition;
+            }
+            catch (Exception e)
+            {
+                if(!dontDeleteGeneratedFrames) Directory.Delete(folder, true);
+                return new Payload
+                {
+                    ErrorMessage = $"An error occurred during frame generation: {e}"
+                };
             }
 
-            File.Delete(outputPath);
-            var x = $"-r {fps} -i \"{folder}/frame%08d.png\" -c:v libx264 -vf scale=out_color_matrix=bt709,format=yuv420p \"{outputPath}\"";
-            await StartProcess(ffmpegPath, x, (a, b) => { Console.WriteLine(b.Data); }, (sender, args) =>
+            try
             {
-                if (string.IsNullOrWhiteSpace(args.Data) || hasBeenKilled) return;
-                //if (CheckNoSpaceDuringBreakMerge(args.Data)) return;
-                MatchCollection matchCollection = Regex.Matches(args.Data, @"^frame=\s*\d+\s.+?time=(\d{2}:\d{2}:\d{2}\.\d{2}).+");
-                if (matchCollection.Count == 0) return;
-                //Console.WriteLine(TimeSpan.Parse(matchCollection[0].Groups[1].Value));
-                Console.WriteLine(args.Data);
-            });
+                File.Delete(outputPath);
+                var x = $"-r {fps} -i \"{folder}/frame%08d.png\" -c:v libx264 -vf scale=out_color_matrix=bt709,format=yuv420p \"{outputPath}\"";
+                await StartProcess(ffmpegPath, x, (a, b) => { Console.WriteLine(b.Data); }, (sender, args) =>
+                {
+                    if (string.IsNullOrWhiteSpace(args.Data) || hasBeenKilled) return;
+                    var matchCollection = Regex.Matches(args.Data, @"^frame=\s*(\d+).+");
+                    if (matchCollection.Count == 0) return;
+                    RecordProgress(int.Parse(matchCollection[0].Groups[1].Value));
+                });
+            }
+            catch (Exception e)
+            {
+                if (!dontDeleteGeneratedFrames) Directory.Delete(folder, true);
+                return new Payload
+                {
+                    ErrorMessage = $"An error occurred during video creation: {e}"
+                };
+            }
+            if (!dontDeleteGeneratedFrames) Directory.Delete(folder, true);
 
             return new Payload
             {
@@ -105,18 +143,16 @@ namespace ImageTour
                     totalHeight = int.Parse(matchCollection[0].Groups[2].Value);
                 }
             });
+
+            totalFrames = 1 + transitions.Sum(GetTransitionFrameCount);
+            currentStage = 1;
         }
 
-        int ProcessStillFrames(Transition transition, int totalFramesSoFar)
-        {
-            var totalFramesExcludingFirst = Convert.ToInt32(fps * transition.Duration) - 1;
-            CopyFrame(totalFramesSoFar, totalFramesExcludingFirst);
-            return totalFramesExcludingFirst;
-        }
+        int GetTransitionFrameCount(Transition transition) => Convert.ToInt32(fps * transition.Duration) - 1;
 
         async Task<int> ProcessTransitionFrames(Transition transition, int totalFramesSoFar)
         {
-            var totalFramesExcludingFirst = Convert.ToInt32(fps * transition.Duration) - 1;
+            var totalFramesExcludingFirst = GetTransitionFrameCount(transition);
 
             var xDiff = transition.EndPosition.X - transition.StartPosition.X;
             var yDiff = transition.EndPosition.Y - transition.StartPosition.Y;
@@ -128,6 +164,7 @@ namespace ImageTour
                 var yShift = Convert.ToInt32(i * yDiff / (double)totalFramesExcludingFirst);
                 if (xShift == lastShift.X && yShift == lastShift.Y) CopyFrame(totalFramesSoFar + i - 1, 1);
                 else await GenerateFrame(transition.StartPosition.X + xShift, transition.StartPosition.Y + yShift, totalFramesSoFar + i);
+                RecordProgress(totalFramesSoFar + i);
                 lastShift.X = xShift;
                 lastShift.Y = yShift;
             }
@@ -137,11 +174,12 @@ namespace ImageTour
 
         async Task GenerateFrame(int x, int y, int frameNumber)
         {
-            await StartProcess(ffmpegPath, $"-i \"{inputPath}\" -filter:v  \"crop={width}:{height}:{x}:{y}\" \"{folder}/frame{frameNumber:D8}.png\"", null, (sender, args) =>
-            {
-                if (string.IsNullOrWhiteSpace(args.Data) || hasBeenKilled) Console.WriteLine("N");
-                else Console.WriteLine(y);
-            });
+            await StartProcess(ffmpegPath, $"-i \"{inputPath}\" -filter:v  \"crop={width}:{height}:{x}:{y}\" \"{folder}/frame{frameNumber:D8}.png\"", null, null);
+            //await StartProcess(ffmpegPath, $"-i \"{inputPath}\" -filter:v  \"crop={width}:{height}:{x}:{y}\" \"{folder}/frame{frameNumber:D8}.png\"", null, (sender, args) =>
+            //{
+            //    if (string.IsNullOrWhiteSpace(args.Data) || hasBeenKilled) Console.WriteLine("N");
+            //    else Console.WriteLine(y);
+            //});
         }
 
         void CopyFrame(int frameNumber, int amountOfCopies)
@@ -152,6 +190,8 @@ namespace ImageTour
                 File.Copy(framePath, $"{folder}/frame{frameNumber + j:D8}.png");
             }
         }
+
+        void RecordProgress(int currentFrame) => progress?.Invoke(new Progress { CurrentFrame = currentFrame, TotalFrames = totalFrames, CurrentStage = currentStage });
 
         async Task StartProcess(string processFileName, string arguments, DataReceivedEventHandler? outputEventHandler, DataReceivedEventHandler? errorEventHandler)
         {
@@ -199,8 +239,9 @@ namespace ImageTour
 
         public struct Progress
         {
-            public double Percentage { get; set; }
-            public string Stage { get; set; }
+            public int CurrentFrame { get; set; }
+            public int TotalFrames { get; set; }
+            public int CurrentStage { get; set; }
         }
     }
 }
