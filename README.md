@@ -1,6 +1,6 @@
 ![ImageTour](https://www.dropbox.com/scl/fi/ld4fzpdtvx8ufbl7qsxg0/ImageTourGithubImage.gif?rlkey=8tdq447nqqmghdo3xygwdpt71&st=92zwpht0&raw=1)
 
-Using **ImageTour**, you can create a video that "tours" around a large-resolution image, especially for cases where said image is too huge to share. You control the movement by setting multiple points in the image, and the "camera" (a window smaller than the image) moves between these points. You also control the duration of each transition, and the frames per second (fps) of the output video.
+Using **ImageTour**, you can create a video that "tours" around a large-resolution image, especially for cases where said image is too huge to share. You control the movement by setting multiple points in the image, and the "camera" (a window smaller than the image) moves between these points. You also control the duration of each transition, and the frames per second (fps) of the output video.</br>
 Only supports Windows 10 and 11 (not tested on other versions of Windows).
 
 
@@ -14,7 +14,7 @@ dotnet publish -p:PublishSingleFile=true -r win-x64 -c Release --self-contained 
 When that completes, go to `\bin\Release\net<version>-windows\win-x64\publish` and you'll find the **ImageTour.exe**.
 
 ## Run without building
-You can also just download the release builds if you don't wish to build manually. The assets release contains the assets used by the software, which is just the ffmpeg executable. If you already have this on your system (or you'd rather get it from elsewhere), you won't need to download this. The standard release contains the compiled executable.
+You can also just download the release builds if you don't wish to build manually. The assets release contains the assets used by the software, which is just the ffmpeg executable. If you already have this on your system (or you'd rather get it from elsewhere), you won't need to download this. The main release contains the compiled executable.
 
 If you wish to run the software without installing the required .NET runtime, download the self-contained release.
 
