@@ -51,7 +51,6 @@ namespace ImageTour
                     ErrorMessage = "No transitions specified"
                 };
             }
-
             if (width * height == 0)
             {
                 return new Payload
@@ -59,12 +58,25 @@ namespace ImageTour
                     ErrorMessage = "Both output dimensions should be greater than 0"
                 };
             }
-
+            if (width % 2 != 0 || height % 2 != 0)
+            {
+                return new Payload
+                {
+                    ErrorMessage = "Both output dimensions should be divisible by 2"
+                };
+            }
             if (!File.Exists(ffmpegPath))
             {
                 return new Payload
                 {
                     ErrorMessage = "FFMPEG is required to run this program. Put the ffmpeg executable in the same folder that contains this program"
+                };
+            }
+            if (!File.Exists(inputPath))
+            {
+                return new Payload
+                {
+                    ErrorMessage = "The input file could not be found"
                 };
             }
 

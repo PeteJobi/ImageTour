@@ -25,7 +25,7 @@ if (arguments.Length < 2)
     Console.Write("Output fps (the frames per seconds of the resulting video): ");
     var fpsInput = Console.ReadLine();
     if(!string.IsNullOrWhiteSpace(fpsInput)) fps = double.Parse(fpsInput);
-    Console.Write("FFMPEG path (the path to the FFMPEG executable?): ");
+    Console.Write("FFMPEG path (the path to the FFMPEG executable): ");
     ffmpegPath = Console.ReadLine();
     Console.Write("Don't delete generated frames? (do you want to keep frames generated during the process? [y/n]): ");
     var dontInput = Console.ReadLine();
