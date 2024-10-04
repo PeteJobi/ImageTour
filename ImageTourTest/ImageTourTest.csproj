@@ -8,7 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="ffmpeg.exe">
+    <ProjectReference Include="..\ImageTour\ImageTour.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="input.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -1,31 +1,98 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using System.Text.RegularExpressions;
 using static ImageTour.ImageTour;
 
-const string ffmpegPath = "ffmpeg.exe";
-string inputPath = "input.png";
-string outputPath = "output.mp4";
-int width = 496;
-int height = 726;
-double fps = 10;
-var transitions = new Transition[]
-{
-    //new() { StartPosition = new Position { X = 158, Y = 0 }, EndPosition = new Position { X = 158, Y = 0 }, Duration = 1 },
-    new() { StartPosition = new Position { X = 158, Y = 0 }, EndPosition = new Position { X = 158, Y = 665 }, Duration = 10 },
-    //new() { StartPosition = new Position { X = 158, Y = 665 }, EndPosition = new Position { X = 158, Y = 665 }, Duration = 1 },
-    //new() { StartPosition = new Position { X = 158, Y = 665 }, EndPosition = new Position { X = 653, Y = 0 }, Duration = 10 },
-    //new() { StartPosition = new Position { X = 653, Y = 0 }, EndPosition = new Position { X = 653, Y = 0 }, Duration = 1 },
-    //new() { StartPosition = new Position { X = 653, Y = 0 }, EndPosition = new Position { X = 653, Y = 665 }, Duration = 10 },
-    //new() { StartPosition = new Position { X = 653, Y = 665 }, EndPosition = new Position { X = 653, Y = 665 }, Duration = 2 }
-};
+string? ffmpegPath = null;
+var inputPath = string.Empty;
+var outputPath = string.Empty;
+var width = 0;
+var height = 0;
+double fps = 24;
+var dontDeleteFrames = false;
+var transitions = Array.Empty<Transition>();
 
-var imageTour = new ImageTour.ImageTour(ffmpegPath);
-//await imageTour.Animate(inputPath, outputPath, width, height, fps, transitions);
-await imageTour.Animate(@"C:\Users\PeterEgunjobi\Pictures\Screenshots\Screenshot (243).png", @"C:\Users\PeterEgunjobi\Pictures\video.mp4", 572, 818, 60, [
-    new() { StartPosition = new Position { X = 372, Y = 0 }, EndPosition = new Position { X = 372, Y = 0 }, Duration = 1 },
-    new() { StartPosition = new Position { X = 372, Y = 0 }, EndPosition = new Position { X = 372, Y = 1742 }, Duration = 15 },
-    new() { StartPosition = new Position { X = 372, Y = 1742 }, EndPosition = new Position { X = 372, Y = 1742 }, Duration = 2 }
-], progress =>
+var arguments = Environment.GetCommandLineArgs();
+if (arguments.Length < 2)
 {
-    Console.WriteLine($"Stage: {progress.CurrentStage}, Progress: {progress.CurrentFrame}/{progress.TotalFrames}");
-});
-Console.WriteLine("Done");
+    Console.WriteLine("Please enter the parameters below:");
+    Console.Write("Input filename (the path to the image you wish to tour): ");
+    inputPath = Console.ReadLine() ?? Invalid(nameof(inputPath));
+    Console.Write("Output filename (the path where the resulting video should be saved): ");
+    outputPath = Console.ReadLine() ?? Invalid(nameof(outputPath));
+    Console.Write("Output width (the width of the resulting video): ");
+    width = int.Parse(Console.ReadLine() ?? Invalid(nameof(width)));
+    Console.Write("Output height (the height of the resulting video): ");
+    height = int.Parse(Console.ReadLine() ?? Invalid(nameof(height)));
+    Console.Write("Output fps (the frames per seconds of the resulting video): ");
+    var fpsInput = Console.ReadLine();
+    if(!string.IsNullOrWhiteSpace(fpsInput)) fps = double.Parse(fpsInput);
+    Console.Write("FFMPEG path (the path to the FFMPEG executable?): ");
+    ffmpegPath = Console.ReadLine();
+    Console.Write("Don't delete generated frames? (do you want to keep frames generated during the process? [y/n]): ");
+    var dontInput = Console.ReadLine();
+    dontDeleteFrames = !string.IsNullOrWhiteSpace(dontInput) && dontInput.ToLower() == "y";
+    Console.Write("Transition steps (the points in the image that should be toured in the resulting video." +
+                  " Each transition should be in the format [(x1, y1), (x2, y2), s]. Multiple transitions should be separated by |): ");
+    transitions = ProcessTransitionString(Console.ReadLine() ?? Invalid(nameof(transitions)));
+}
+else
+{
+    for (var i = 1; i < arguments.Length; i++)
+    {
+        var argument = arguments[i];
+        switch (argument)
+        {
+            case "-i": inputPath = arguments[i + 1];
+                i++; break;
+            case "-o": outputPath = arguments[i + 1];
+                i++; break;
+            case "-w": width = int.Parse(arguments[i + 1]);
+                i++; break;
+            case "-h": height = int.Parse(arguments[i + 1]);
+                i++; break;
+            case "-t": transitions = ProcessTransitionString(arguments[i + 1]);
+                i++; break;
+            case "-fps": fps = double.Parse(arguments[i + 1]);
+                i++; break;
+            case "-ffmpegPath": ffmpegPath = arguments[i + 1];
+                i++; break;
+            case "-dontDelete": dontDeleteFrames = true;
+                break;
+        }
+    }
+}
+
+var nowMerging = false;
+Console.WriteLine();
+var imageTour = new ImageTour.ImageTour(ffmpegPath);
+var payload = await imageTour.Animate(inputPath, outputPath, width, height, fps, transitions, ProgressCallback, dontDeleteFrames);
+Console.WriteLine(payload.Success ? $"Done! {payload.FramesGenerated} frames generated" : payload.ErrorMessage);
+
+void ProgressCallback(Progress progress)
+{
+    if (!nowMerging && progress.CurrentStage > transitions.Length)
+    {
+        nowMerging = true;
+        Console.WriteLine();
+    }
+    Console.Write("\r");
+    Console.Write($"{(nowMerging ? "Merging video" : "Generating frames")}: {progress.CurrentFrame}/{progress.TotalFrames}{new string(' ', 10)}");
+}
+
+Transition[] ProcessTransitionString(string transitionString)
+{
+    var transitionStrings = transitionString.Split('|');
+    return transitionStrings.Select(s =>
+    {
+        var matchCollection = Regex.Matches(Regex.Replace(s, "\\s", string.Empty), @"\[\((\d+),(\d+)\),\((\d+),(\d+)\),(\d+)\]");
+        if (!matchCollection.Any()) _ = Invalid(nameof(transitions));
+        return new Transition
+        {
+            StartPosition = new Position { X = ParseMatch(matchCollection, 1), Y = ParseMatch(matchCollection, 2) },
+            EndPosition = new Position { X = ParseMatch(matchCollection, 3), Y = ParseMatch(matchCollection, 4) },
+            Duration = ParseMatch(matchCollection, 5)
+        };
+    }).ToArray();
+}
+
+string Invalid(string argument) => throw new InvalidOperationException($"Argument invalid: {argument}");
+int ParseMatch(MatchCollection collection, int capture) => int.Parse(collection[0].Groups[capture].Value);

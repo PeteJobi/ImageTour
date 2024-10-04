@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace ImageTour
@@ -18,11 +19,15 @@ namespace ImageTour
         private int currentStage;
         private Transition[] transitions;
         private Action<Progress>? progress;
-        //private bool dontDeleteFrames;
+        private bool dontDeleteFrames;
         private bool hasBeenKilled;
         private Process currentProcess;
 
-        public ImageTour(string ffmpegPath)
+        public ImageTour()
+        {
+        }
+
+        public ImageTour(string? ffmpegPath)
         {
             this.ffmpegPath = ffmpegPath;
         }
@@ -36,13 +41,30 @@ namespace ImageTour
             fps = outputFps;
             transitions = transitionSteps.ToArray();
             this.progress = progress;
-            //dontDeleteFrames = dontDeleteGeneratedFrames;
+            dontDeleteFrames = dontDeleteGeneratedFrames;
+            if (string.IsNullOrWhiteSpace(ffmpegPath)) ffmpegPath = "ffmpeg.exe";
 
             if (!transitions.Any())
             {
                 return new Payload
                 {
                     ErrorMessage = "No transitions specified"
+                };
+            }
+
+            if (width * height == 0)
+            {
+                return new Payload
+                {
+                    ErrorMessage = "Both output dimensions should be greater than 0"
+                };
+            }
+
+            if (!File.Exists(ffmpegPath))
+            {
+                return new Payload
+                {
+                    ErrorMessage = "FFMPEG is required to run this program. Put the ffmpeg executable in the same folder that contains this program"
                 };
             }
 
@@ -75,7 +97,7 @@ namespace ImageTour
             }
             catch (Exception e)
             {
-                if(!dontDeleteGeneratedFrames) Directory.Delete(folder, true);
+                CleanUp();
                 return new Payload
                 {
                     ErrorMessage = $"An error occurred during frame generation: {e}"
@@ -96,13 +118,13 @@ namespace ImageTour
             }
             catch (Exception e)
             {
-                if (!dontDeleteGeneratedFrames) Directory.Delete(folder, true);
+                CleanUp();
                 return new Payload
                 {
                     ErrorMessage = $"An error occurred during video creation: {e}"
                 };
             }
-            if (!dontDeleteGeneratedFrames) Directory.Delete(folder, true);
+            CleanUp();
 
             return new Payload
             {
@@ -148,6 +170,11 @@ namespace ImageTour
             currentStage = 1;
         }
 
+        void CleanUp()
+        {
+            if (!dontDeleteFrames) Directory.Delete(folder, true);
+        }
+
         int GetTransitionFrameCount(Transition transition) => Convert.ToInt32(fps * transition.Duration) - 1;
 
         async Task<int> ProcessTransitionFrames(Transition transition, int totalFramesSoFar)
@@ -174,12 +201,11 @@ namespace ImageTour
 
         async Task GenerateFrame(int x, int y, int frameNumber)
         {
-            await StartProcess(ffmpegPath, $"-i \"{inputPath}\" -filter:v  \"crop={width}:{height}:{x}:{y}\" \"{folder}/frame{frameNumber:D8}.png\"", null, null);
-            //await StartProcess(ffmpegPath, $"-i \"{inputPath}\" -filter:v  \"crop={width}:{height}:{x}:{y}\" \"{folder}/frame{frameNumber:D8}.png\"", null, (sender, args) =>
-            //{
-            //    if (string.IsNullOrWhiteSpace(args.Data) || hasBeenKilled) Console.WriteLine("N");
-            //    else Console.WriteLine(y);
-            //});
+            await StartProcess(ffmpegPath, $"-i \"{inputPath}\" -filter:v  \"crop={width}:{height}:{x}:{y}\" \"{folder}/frame{frameNumber:D8}.png\"", null, (sender, args) =>
+            {
+                //if (string.IsNullOrWhiteSpace(args.Data) || hasBeenKilled) Console.WriteLine("N");
+                if(args.Data?.Contains("failed", StringComparison.OrdinalIgnoreCase) == true) Console.WriteLine(args.Data);
+            });
         }
 
         void CopyFrame(int frameNumber, int amountOfCopies)
