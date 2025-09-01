@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ImageTour (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ImageTour (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
