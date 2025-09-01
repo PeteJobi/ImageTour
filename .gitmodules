@@ -1,6 +1,6 @@
 [submodule "DraggerResizerWinUI"]
 	path = DraggerResizerWinUI
 	url = https://github.com/PeteJobi/DraggerResizerWinUI.git
-[submodule "ImageTourPage"]
-	path = ImageTourPage
-	url = https://github.com/PeteJobi/ImageTourPage.git
+[submodule "ImageTourPageWinUI"]
+	path = ImageTourPageWinUI
+	url = https://github.com/PeteJobi/ImageTourPageWinUI.git
