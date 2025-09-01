@@ -5,6 +5,10 @@ VisualStudioVersion = 17.14.36203.30
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageTour", "ImageTour\ImageTour.csproj", "{4E523ADD-F064-41E9-A99A-EA05A8CBA6F8}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "DraggerResizer", "DraggerResizerWinUI\DraggerResizer.shproj", "{26BA5B05-9F47-4FB6-873D-CA48909F653E}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ImageTourPage", "ImageTourPage\ImageTourPage.shproj", "{12E27B88-C197-4545-8A19-6E744A5012AD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -39,5 +43,11 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {39768067-247D-410D-9239-47A82B35B21A}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		ImageTourPage\ImageTourPage.projitems*{12e27b88-c197-4545-8a19-6e744a5012ad}*SharedItemsImports = 13
+		DraggerResizerWinUI\DraggerResizer.projitems*{26ba5b05-9f47-4fb6-873d-ca48909f653e}*SharedItemsImports = 13
+		DraggerResizerWinUI\DraggerResizer.projitems*{4e523add-f064-41e9-a99a-ea05a8cba6f8}*SharedItemsImports = 5
+		ImageTourPage\ImageTourPage.projitems*{4e523add-f064-41e9-a99a-ea05a8cba6f8}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
