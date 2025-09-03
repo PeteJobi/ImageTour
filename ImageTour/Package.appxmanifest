@@ -9,7 +9,7 @@
 
   <Identity
     Name="6c272201-055a-45f3-9f83-97e6a336c7da"
-    Publisher="CN=Peter Egunjobi"
+    Publisher="CN=PIE Softwares"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="6c272201-055a-45f3-9f83-97e6a336c7da" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
@@ -34,13 +34,14 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="ImageTour"
-        Description="ImageTour"
+        DisplayName="Image Tour"
+        Description="You have a high-res image too huge to share and you don&apos;t wish to compromise the quality by compressing it? Use ImageTour to create a video that moves around the image the way you want."
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"  Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
+        <uap:LockScreen BadgeLogo="Assets\BadgeLogo.png" Notification="badgeAndTileText"/>
       </uap:VisualElements>
     </Application>
   </Applications>
