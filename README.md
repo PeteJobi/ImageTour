@@ -1,4 +1,4 @@
-![input_TOURED](https://github.com/user-attachments/assets/7ad98053-2871-4ea1-9724-9593361cf775)
+![input_TOURED2](https://github.com/user-attachments/assets/81c2457e-ec15-4056-b392-c31121cd2670)
 
 Using **ImageTour**, you can create a video that "tours" around a large-resolution image, especially for cases where said image is too huge to share. You control the movement by setting multiple keyframes in the image, and the intermediate frames are interpolated. You also control the duration of each transition, and the width, height and frames per second (fps) of the output video. Video input files are also supported.
 Only supports Windows 10 and 11 (not tested on other versions of Windows). Powered by FFMPEG.
