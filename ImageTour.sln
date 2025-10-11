@@ -9,6 +9,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "DraggerResizer", "DraggerRe
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "ImageTourPage", "ImageTourPageWinUI\ImageTourPage.shproj", "{12E27B88-C197-4545-8A19-6E744A5012AD}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Timeline", "TimelineWinUI\Timeline.shproj", "{8A87FF88-D9FA-499F-971F-6A8B191EB7C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM64 = Debug|ARM64
@@ -49,5 +51,7 @@ Global
 		DraggerResizerWinUI\DraggerResizer.projitems*{26ba5b05-9f47-4fb6-873d-ca48909f653e}*SharedItemsImports = 13
 		DraggerResizerWinUI\DraggerResizer.projitems*{4e523add-f064-41e9-a99a-ea05a8cba6f8}*SharedItemsImports = 5
 		ImageTourPageWinUI\ImageTourPage.projitems*{4e523add-f064-41e9-a99a-ea05a8cba6f8}*SharedItemsImports = 5
+		TimelineWinUI\Timeline.projitems*{4e523add-f064-41e9-a99a-ea05a8cba6f8}*SharedItemsImports = 5
+		TimelineWinUI\Timeline.projitems*{8a87ff88-d9fa-499f-971f-6a8b191eb7c5}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal
