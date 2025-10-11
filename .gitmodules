@@ -4,3 +4,6 @@
 [submodule "ImageTourPageWinUI"]
 	path = ImageTourPageWinUI
 	url = https://github.com/PeteJobi/ImageTourPageWinUI.git
+[submodule "TimelineWinUI"]
+	path = TimelineWinUI
+	url = https://github.com/PeteJobi/TimelineWinUI.git
