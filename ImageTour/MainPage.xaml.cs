@@ -63,7 +63,7 @@ namespace ImageTour
 
         private async void GoToTour(string mediaPath)
         {
-            var ffmpegPath = string.Empty;
+            string ffmpegPath;
             try
             {
                 ffmpegPath = Path.Join(Package.Current.InstalledLocation.Path, "Assets/ffmpeg.exe");
