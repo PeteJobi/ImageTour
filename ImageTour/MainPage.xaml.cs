@@ -48,7 +48,7 @@ namespace ImageTour
 
         private async void ShowFilePicker(object sender, RoutedEventArgs e)
         {
-            string[] allSupportedTypes = [".png", ".jpg", ".mkv", ".mp4"];
+            string[] allSupportedTypes = [".png", ".jpg", ".mkv", ".mp4", ".mov"];
             var filePicker = new FileOpenPicker();
             filePicker.SuggestedStartLocation = PickerLocationId.VideosLibrary;
             foreach (var supportedType in allSupportedTypes)
