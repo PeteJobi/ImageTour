@@ -78,6 +78,7 @@
     <AppxBundle>Never</AppxBundle>
     <AppInstallerUri>C:/</AppInstallerUri>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <AppxPackageDir>AppPackages\</AppxPackageDir>
   </PropertyGroup>
   <Import Project="..\DraggerResizerWinUI\DraggerResizer.projitems" Label="Shared" />
   <Import Project="..\ImageTourPageWinUI\ImageTourPage.projitems" Label="Shared" />
