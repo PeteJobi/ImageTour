@@ -68,7 +68,7 @@
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">False</PublishTrimmed>
-    <PackageCertificateKeyFile>C:\Users\Peter Egunjobi\source\repos\PeteJobi\MediaTrackMixer\MediaTrackMixer\MediaTrackMixer_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>ImageTour_TemporaryKey.pfx</PackageCertificateKeyFile>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <GenerateAppInstallerFile>True</GenerateAppInstallerFile>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
