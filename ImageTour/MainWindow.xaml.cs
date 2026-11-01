@@ -16,7 +16,6 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Graphics;
-using Orientation = DraggerResizer.Orientation;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -28,14 +27,13 @@ namespace ImageTour
     /// </summary>
     public sealed partial class MainWindow : Window
     {
-        public static Window Window;
         public MainWindow()
         {
             InitializeComponent();
-            Window = this;
             AppWindow.Resize(new SizeInt32(1800, AppWindow.Size.Height));
-            AppWindow.SetTitleBarIcon("Assets/EncircledPIERound.ico");
-            WindowFrame.Navigate(typeof(MainPage));
+            ExtendsContentIntoTitleBar = true;
+            SetTitleBar(WindowRoot.TitleBar);
+            WindowRoot.Frame.Navigate(typeof(MainPage), WindowRoot.TitleBar);
         }
     }
 }
